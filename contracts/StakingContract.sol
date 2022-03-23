@@ -1,14 +1,10 @@
 // SPDX-License-Identifier: Unlicense
 pragma solidity >=0.4.22 <0.9.0;
-
-// сделай рефакторинг и всю проверочную логику выноси в modifier.
-
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "hardhat/console.sol";
-
 contract StakingContract is Ownable {
     using SafeMath for uint256;
     using SafeMath for uint16;
@@ -24,9 +20,11 @@ contract StakingContract is Ownable {
     mapping(address => uint256) private holdersTimeStamps; 
     mapping(address => uint256) private interestRate;
     mapping(address => uint256) private WETHContractBalance;
+
     uint16 internal rewardPerHour1; // 2000 0,05% за 3600 секунд (час)
     uint16 internal rewardPerHour2; // 1000 0,1% за 3600 секунд (час)
     uint16 private freezTime; // 60 мин
+    
     event CreateStake(
         address indexed stakeholder,
         uint256 amount,

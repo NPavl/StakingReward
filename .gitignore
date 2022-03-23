@@ -3,4 +3,7 @@ node_modules
 artifacts
 cache
 description.txt
-node_modules
+frontend
+coverage
+coverage.json
+typechain
