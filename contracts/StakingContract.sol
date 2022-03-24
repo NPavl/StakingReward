@@ -21,10 +21,9 @@ contract StakingContract is Ownable {
     mapping(address => uint256) private holdersTimeStamps; 
     mapping(address => uint256) private interestRate;
     mapping(address => uint256) private WETHContractBalance;
-    uint16 internal rewardPerHour1; // 2000 0,05% за 3600 секунд (час)
-    uint16 internal rewardPerHour2; // 1000 0,1% за 3600 секунд (час)
-    uint16 private freezTime; // 60 мин
-
+    uint16 internal rewardPerHour1; // 2000 = 0,05% 
+    uint16 internal rewardPerHour2; // 1000 = 0,1% 
+    uint16 private freezTime; // от 1 мин и более  
     event CreateStake(
         address indexed stakeholder,
         uint256 amount,
@@ -54,7 +53,7 @@ contract StakingContract is Ownable {
 
     // uint8 private interestRate;
     constructor(
-        address _lpTokenAddress,
+        address _lpTokenAddress, 
         address _rewardTokenAddress,
         uint16 _timeMinutes,
         uint16 _rewardPerHour1,
@@ -64,9 +63,9 @@ contract StakingContract is Ownable {
         // rewardTokenAddress = IERC20(_rewardTokenAddress);
         lpTokenAddress = _lpTokenAddress;
         rewardTokenAddress = _rewardTokenAddress;
-        freezTime = _timeMinutes; // * 60; // in sec (6*6 36)
-        rewardPerHour1 = _rewardPerHour1;
-        rewardPerHour2 = _rewardPerHour2;
+        freezTime = _timeMinutes; // * 60; // in sec 
+        rewardPerHour1 = _rewardPerHour1; // 2000 (1LP = 0.0005WETH reward in 1 min) 
+        rewardPerHour2 = _rewardPerHour2; // 1000 (50LP = 0.05WETH reward in 1 min) 
     }
 
       modifier isStakeHolder(address _stakeholder) {
@@ -127,14 +126,14 @@ contract StakingContract is Ownable {
         }
     }
 
-    function chekStakeTimePresent(address _stakeholder)
+    function chekStakeTimePresent(address _stakeholder) // какое время в мин stakeholder удерживает свой вклад 
         public
         view
         isStakeHolder(_stakeholder)
         returns (uint256 timeInMin)
     {
         return
-            timeInMin = (block.timestamp - holdersTimeStamps[_stakeholder]) / 60; // в минутах. служебная
+            timeInMin = (block.timestamp - holdersTimeStamps[_stakeholder]) / 60; // служебная функция
     }
 
     function chekInterestRate()
@@ -240,8 +239,8 @@ contract StakingContract is Ownable {
         return _totalRewards;
     }
 
-    function calculateReward(
-        address _stakeholder // 1 minutes для быстрых тестов (по планам 1 hour)
+    function calculateReward( 
+        address _stakeholder // 1 min для быстрых тестов (по планам 1 hour)
     ) internal returns (uint256) {
         uint256 _reward;
         if (interestRate[msg.sender] == rewardPerHour1) {

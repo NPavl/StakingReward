@@ -3,7 +3,9 @@ node_modules
 artifacts
 cache
 description.txt
+calculations.txt
 frontend
 coverage
 coverage.json
 typechain
+.env
