@@ -4,7 +4,7 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
-import "hardhat/console.sol";
+// import "hardhat/console.sol";
 
 contract StakingContract is Ownable {
     using SafeMath for uint256;
@@ -126,14 +126,14 @@ contract StakingContract is Ownable {
         }
     }
 
-    function chekStakeTimePresent(address _stakeholder) // какое время в мин stakeholder удерживает свой вклад 
+    function chekStakeTimePresent(address _stakeholder) // serv, какое время в мин stakeholder удерживает свой вклад 
         public
         view
         isStakeHolder(_stakeholder)
         returns (uint256 timeInMin)
     {
         return
-            timeInMin = (block.timestamp - holdersTimeStamps[_stakeholder]) / 60; // служебная функция
+            timeInMin = (block.timestamp - holdersTimeStamps[_stakeholder]) / 60; 
     }
 
     function chekInterestRate()
@@ -157,7 +157,7 @@ contract StakingContract is Ownable {
         } else {
             (bool reward) = withdrawReward();
             require(reward == true, "withdrawReward return false");
-            IERC20(lpTokenAddress).safeTransfer(msg.sender, _stake); // проверь заходиn ли сюда и возвращет ли LP 
+            IERC20(lpTokenAddress).safeTransfer(msg.sender, _stake); 
             stakes[msg.sender] = stakes[msg.sender].sub(_stake);
             calculateInterestRate(stakes[msg.sender]);
             emit RemovePartOfStake(msg.sender, _stake, block.timestamp);
@@ -240,23 +240,23 @@ contract StakingContract is Ownable {
     }
 
     function calculateReward( 
-        address _stakeholder // 1 min для быстрых тестов (по планам 1 hour)
-    ) internal returns (uint256) {
-        uint256 _reward;
+        address _stakeholder // 1 min для быстрых тестов 
+    ) internal returns (uint256 _reward) {
+        _reward;
         if (interestRate[msg.sender] == rewardPerHour1) {
             _reward =
                 (((block.timestamp - holdersTimeStamps[_stakeholder]) /
                     1 minutes) * stakes[_stakeholder]) /
                 rewardPerHour1;
             rewards[_stakeholder] = rewards[_stakeholder].add(_reward);
-            return (rewards[_stakeholder]);
+            return _reward;
         } else if (interestRate[msg.sender] == rewardPerHour2) {
-            _reward =
+           _reward =
                 (((block.timestamp - holdersTimeStamps[_stakeholder]) /
                     1 minutes) * stakes[_stakeholder]) /
                 rewardPerHour2;
             rewards[_stakeholder] = rewards[_stakeholder].add(_reward);
-            return (rewards[_stakeholder]);
+            return _reward;
         }
         // return stakes[_stakeholder] * interestRate / 100;
     }
@@ -298,15 +298,15 @@ contract StakingContract is Ownable {
         return WETHContractBalance[address(this)];
     }
 
-    function distributeRewards() // резервная не исп 
-        public
-        onlyOwner
-    {
-        for (uint256 s = 0; s < stakeholders.length; s += 1){
-            address stakeholder = stakeholders[s];
-            uint256 reward = calculateReward(stakeholder);
-            rewards[stakeholder] = rewards[stakeholder].add(reward);
-            holdersTimeStamps[stakeholders[s]] = block.timestamp; 
-        }
-    }
+    // function distributeRewards() // резервная не исп 
+    //     public
+    //     onlyOwner
+    // {
+    //     for (uint256 s = 0; s < stakeholders.length; s += 1){
+    //         address stakeholder = stakeholders[s];
+    //         uint256 reward = calculateReward(stakeholder);
+    //         rewards[stakeholder] = rewards[stakeholder].add(reward);
+    //         holdersTimeStamps[stakeholders[s]] = block.timestamp; 
+    //     }
+    // }
 }

@@ -36,10 +36,15 @@
 ```
 #### Token contract address (Rinkiby): 
 
+- StakinContract (1 min freezTime) = '0xc1B59A9f029D11f1EDAE92113CeBEc46C9F9352D'
+https://rinkeby.etherscan.io/address/0xc1B59A9f029D11f1EDAE92113CeBEc46C9F9352D#code
+
+- StakinContract (60 min freezTime) = '0x9A9a5ee5B74388247c072Ff37A37a1De019E98A1'
+https://rinkeby.etherscan.io/address/0x9A9a5ee5B74388247c072Ff37A37a1De019E98A1#code
+
 - Factory https://rinkeby.etherscan.io/address/0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f#readContract
 
-- StakinContract (1 min freezTime) = ''
-- StakinContract (60 min freezTime) = ''
+
 
 - LP(UNI-V2): '0xF4927988BB35a7C0469C183f0e29adC8B16f0878'
 https://rinkeby.etherscan.io/address/0xF4927988BB35a7C0469C183f0e29adC8B16f0878
@@ -94,7 +99,7 @@ yarn add --dev @nomiclabs/hardhat-ethers ethers
 yarn add --dev @nomiclabs/hardhat-waffle ethereum-waffle chai
 yarn add --save-dev @nomiclabs/hardhat-etherscan
 yarn add install dotenv 
-yarn add --dev solidity-coverage
+yarn add --dev solidity-coverage 
 yarn add --dev hardhat-gas-reporter 
 yarn add --dev hardhat-gas-reporter
 yarn add --dev hardhat-contract-sizer

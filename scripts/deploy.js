@@ -2,8 +2,8 @@
 async function main() {
   const ltokenAddress = '0xF4927988BB35a7C0469C183f0e29adC8B16f0878' // BLR/SSSR UNI-V2
   const rewardsAddress = '0xaa907E805779bf0Cd18B26f60D1AD5544140298e' // WETH 
-  freeztime = 1 // 1 minutes (период калькуляции rewards)
-  // freeztime = 60 // 60 minutes (период калькуляции rewards)
+  // freeztime = 1 // 1 minutes (период калькуляции rewards)
+  freeztime = 60 // 60 minutes (период калькуляции rewards)
   rewardPerHour1 = 2000; 
   rewardPerHour2 = 1000; 
 
