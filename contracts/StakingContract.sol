@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: Unlicense
 pragma solidity >=0.4.22 <0.9.0;
-
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
@@ -25,6 +24,7 @@ contract StakingContract is Ownable {
     uint16 internal rewardPerHour1; // 2000 0,05% за 3600 секунд (час)
     uint16 internal rewardPerHour2; // 1000 0,1% за 3600 секунд (час)
     uint16 private freezTime; // 60 мин
+
     event CreateStake(
         address indexed stakeholder,
         uint256 amount,
@@ -85,7 +85,7 @@ contract StakingContract is Ownable {
         require( _stake > 0, "Amount must be more than 0");
         _;
     }
-    // ---------- STAKES ----------
+    // STAKES 
     function createStake(
         uint256 _stake 
     ) public amount(_stake) {
@@ -158,7 +158,7 @@ contract StakingContract is Ownable {
         } else {
             (bool reward) = withdrawReward();
             require(reward == true, "withdrawReward return false");
-            IERC20(lpTokenAddress).safeTransfer(msg.sender, _stake); 
+            IERC20(lpTokenAddress).safeTransfer(msg.sender, _stake); // проверь заходиn ли сюда и возвращет ли LP 
             stakes[msg.sender] = stakes[msg.sender].sub(_stake);
             calculateInterestRate(stakes[msg.sender]);
             emit RemovePartOfStake(msg.sender, _stake, block.timestamp);
@@ -262,9 +262,12 @@ contract StakingContract is Ownable {
         // return stakes[_stakeholder] * interestRate / 100;
     }
 
-    function withdrawReward() public checkFreezTime isStakeHolder(msg.sender) returns (bool) {
+    function withdrawReward() public checkFreezTime returns (bool) {
+        (bool _isStakeholder, ) = isStakeholder(msg.sender);
         (uint256 reward) = calculateReward(msg.sender);
-        if (reward != 0) {
+        if (reward == 0 && _isStakeholder == true) {
+            return true;
+        }   else if (reward != 0 && _isStakeholder == true) {
             IERC20(rewardTokenAddress).safeTransfer(msg.sender, reward);
             rewards[msg.sender] = rewards[msg.sender].sub(reward);
             holdersTimeStamps[msg.sender] = block.timestamp;
@@ -274,11 +277,8 @@ contract StakingContract is Ownable {
             // rewardTokenAddress.safeTransfer(msg.sender, reward);
             emit WithdrawReward(msg.sender, reward, block.timestamp);
             return true;
-        } else {
-            return false;
-        }
+        }   else {return false; } 
     }
-
     function sendRewardTokenToStakeContract(uint256 _amount) public amount(_amount) onlyOwner { 
         IERC20(rewardTokenAddress).safeTransferFrom(
             msg.sender,
@@ -299,7 +299,7 @@ contract StakingContract is Ownable {
         return WETHContractBalance[address(this)];
     }
 
-    function distributeRewards() // резервная 
+    function distributeRewards() // резервная не исп 
         public
         onlyOwner
     {
