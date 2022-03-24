@@ -1,10 +1,12 @@
 // SPDX-License-Identifier: Unlicense
 pragma solidity >=0.4.22 <0.9.0;
+
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "hardhat/console.sol";
+
 contract StakingContract is Ownable {
     using SafeMath for uint256;
     using SafeMath for uint16;
@@ -20,11 +22,9 @@ contract StakingContract is Ownable {
     mapping(address => uint256) private holdersTimeStamps; 
     mapping(address => uint256) private interestRate;
     mapping(address => uint256) private WETHContractBalance;
-
     uint16 internal rewardPerHour1; // 2000 0,05% за 3600 секунд (час)
     uint16 internal rewardPerHour2; // 1000 0,1% за 3600 секунд (час)
     uint16 private freezTime; // 60 мин
-    
     event CreateStake(
         address indexed stakeholder,
         uint256 amount,
@@ -35,7 +35,17 @@ contract StakingContract is Ownable {
         uint256 amount,
         uint256 timestamp
     );
-    event RemoveStakeholder(address indexed stakeholder, uint256 timestamp);
+
+     event RemovePartOfStake(
+        address indexed stakeholder,
+        uint256 amount,
+        uint256 timestamp
+    );
+
+    event RemoveStakeholder(
+        address indexed stakeholder, 
+        uint256 timestamp);
+
     event WithdrawReward(
         address indexed stakeholder,
         uint256 amount,
@@ -71,7 +81,6 @@ contract StakingContract is Ownable {
         );
         _;
     }
-
      modifier amount(uint256 _stake) {
         require( _stake > 0, "Amount must be more than 0");
         _;
@@ -94,9 +103,11 @@ contract StakingContract is Ownable {
             calculateInterestRate(stakes[msg.sender]);
             emit CreateStake(msg.sender, _stake, block.timestamp);
         } else {
+            (bool reward) = withdrawReward();
+            require(reward, "withdrawReward return false");
             stakes[msg.sender] = stakes[msg.sender].add(_stake);
-            holdersTimeStamps[msg.sender] +
-                (block.timestamp - holdersTimeStamps[msg.sender]);
+            // holdersTimeStamps[msg.sender] +
+            //     (block.timestamp - holdersTimeStamps[msg.sender]);
             calculateInterestRate(stakes[msg.sender]);
             emit CreateStake(msg.sender, _stake, block.timestamp);
         }
@@ -137,16 +148,20 @@ contract StakingContract is Ownable {
 
     function removeStake( 
         uint256 _stake 
-    ) public checkFreezTime amount(_stake) {
-        if (stakes[msg.sender] == 0) {
-            removeStakeholder(msg.sender);
-        } else {
+    ) public checkFreezTime isStakeHolder(msg.sender) amount(_stake) {
+        if (stakes[msg.sender] == _stake) {
             (bool reward) = withdrawReward();
             require(reward == true, "withdrawReward return false");
             IERC20(lpTokenAddress).safeTransfer(msg.sender, _stake);
+            removeStakeholder(msg.sender);
+            emit RemoveStake(msg.sender, _stake, block.timestamp);
+        } else {
+            (bool reward) = withdrawReward();
+            require(reward == true, "withdrawReward return false");
+            IERC20(lpTokenAddress).safeTransfer(msg.sender, _stake); 
             stakes[msg.sender] = stakes[msg.sender].sub(_stake);
             calculateInterestRate(stakes[msg.sender]);
-            emit RemoveStake(msg.sender, _stake, block.timestamp);
+            emit RemovePartOfStake(msg.sender, _stake, block.timestamp);
             // lpTokenAddress.safeTransferFrom(address(this), msg.sender, _stake);
         }
     }
@@ -173,7 +188,7 @@ contract StakingContract is Ownable {
         return _totalStakes;
     }
 
-    // ---------- STAKEHOLDERS ----------
+    // STAKEHOLDERS 
     function isStakeholder(
         address _address 
     ) public view returns (bool, uint256) {
@@ -203,7 +218,7 @@ contract StakingContract is Ownable {
         emit RemoveStakeholder(_stakeholder, block.timestamp);
     }
 
-    // ---------- REWARDS ----------
+    // REWARDS
     function rewardOf(
         address _stakeholder 
     ) public isStakeHolder(msg.sender) returns (uint256 reward) { 
@@ -226,7 +241,7 @@ contract StakingContract is Ownable {
     }
 
     function calculateReward(
-        address _stakeholder // 1 minutes для быстрых тестов без forka (по планам 1 hour)
+        address _stakeholder // 1 minutes для быстрых тестов (по планам 1 hour)
     ) internal returns (uint256) {
         uint256 _reward;
         if (interestRate[msg.sender] == rewardPerHour1) {
